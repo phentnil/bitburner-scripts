@@ -41,19 +41,6 @@ export async function main(ns) {
         ns.disableLog("ALL");
 
     const abort = false;
-    /*// TODO:
-    // Let the user know what's going on and give them an easy way to kill casino.js
-    function showDialog(onCancel) {
-        const dlg = doc.createElement('div');
-        dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);padding:20px;';
-        dlg.innerHTML = `<p>casino.js is running until it wins \$10b. It will reload the save if it loses too much.<br/>` +
-            `It should only take a minute or two, but you can cancel by clicking the button below.</p>` +
-            `<button>Cancel</button>`;
-        dlg.querySelector('button').onclick = () => { onCancel(); doc.body.removeChild(dlg); };
-        doc.body.appendChild(dlg);
-    }
-    showDialog(() => abort = true);
-    //*/
 
     /** Helper function to detect if focus was stolen by (e.g.) faction|company work|studying|training and send that work to the background
      * @param {boolean} throwError (default true) If true, and we were doing focus work, throws an Error.
@@ -531,7 +518,7 @@ async function internalfindWithRetry(ns, xpath, expectFailure, maxRetries, custo
     try {
         // NOTE: We cannot actually log the xpath we're searching for because depending on the xpath, it might match our log!
         // So here's a trick to convert the characters into "look-alikes"
-        const logSafeXPath = xpath.substring(2, 20) + "..."; // TODO: Some trick to convert the characters into "look-alikes" (ạḅc̣ḍ...)
+        const logSafeXPath = xpath.substring(2, 20) + "...";
         if (verbose)
             log(ns, `INFO: ${(expectFailure ? "Checking if element is on screen" : "Searching for expected element")}: \"${logSafeXPath}\"`, false);
         // If enabled give the game some time to render an item before we try to find it on screen
