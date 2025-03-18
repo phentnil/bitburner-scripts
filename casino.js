@@ -7,7 +7,7 @@ import {
 // delete all temp files and avoid creating more so that the game saves / reloads faster.
 
 const supportMsg = "Consider posting a full-game screenshot and your save file in the Discord channel or in a new github issue if you want help debugging this issue.";
-let doc = eval("document");
+const doc = eval("document");
 let options;
 const argsSchema = [
     ['save-sleep-time', 10], // Time to sleep in milliseconds before and after saving. If you are having trouble with your automatic saves not "taking effect" try increasing this.
@@ -40,7 +40,7 @@ export async function main(ns) {
     else
         ns.disableLog("ALL");
 
-    let abort = false;
+    const abort = false;
     /*// TODO:
     // Let the user know what's going on and give them an easy way to kill casino.js
     function showDialog(onCancel) {
@@ -65,7 +65,7 @@ export async function main(ns) {
         // See if we are on the "focus" (work/study/training) screen
         const btnUnfocus = await tryfindElement(ns, "//button[text()='Do something else simultaneously']");
         if (!btnUnfocus) return false; // All good, we aren't focus-working on anything
-        let baseMessage = "It looks like something stole focus while casino.js was trying to automate the casino.";
+        const baseMessage = "It looks like something stole focus while casino.js was trying to automate the casino.";
         if (throwError) // If we weren't instructed to stop whatever took focus, raise an error
             throw new Error(baseMessage + `\nPlease ensure no other scripts are running and try again.`);
         // Otherwise, log a warning, and return true (focus was stolen)
@@ -84,7 +84,7 @@ export async function main(ns) {
      * @returns {Promise<boolean>} true if we are still at the casino, false we are not and `throwErrorIfNot` is false. */
     async function checkStillAtCasino(throwError = true, silent = false) {
         // Check whether we're still on the casino page
-        let stillAtCasino = await tryfindElement(ns, "//h4[text()='Iker Molina Casino']", silent ? 3 : 10);
+        const stillAtCasino = await tryfindElement(ns, "//h4[text()='Iker Molina Casino']", silent ? 3 : 10);
         if (stillAtCasino) return true; // All seems good, nothing is stealing focus
         // If we're not still at the casino, see if we are on the "focus" (work/study/training) screen
         const focusWasStolen = await checkForStolenFocus(throwError, silent ? 3 : 1);
@@ -92,7 +92,7 @@ export async function main(ns) {
         if (focusWasStolen || silent)
             return false; // Do not log a warning
         // Otherwise, something else took us away from the casino page when we expected to be there
-        let baseMessage = "It looks like the user (or another script) navigated away from the casino page" +
+        const baseMessage = "It looks like the user (or another script) navigated away from the casino page" +
             " while casino.js was trying to automate the casino.";
         if (throwError) // If we weren't instructed to stop whatever took focus, raise an error
             throw new Error(baseMessage + `\nPlease ensure no other scripts are running and try again ` +
@@ -112,7 +112,7 @@ export async function main(ns) {
             const kickedOut = await tryfindElement(ns, "//span[contains(text(), 'Alright cheater get out of here')]", retries);
             if (kickedOut !== null) return true; // Success: We've been kicked out
             // If there are any other modals, they may need to be closed before we can see the kicked out alert.
-            let closeModal = await tryfindElement(ns, "//button[contains(@class,'closeButton')]", retries);
+            const closeModal = await tryfindElement(ns, "//button[contains(@class,'closeButton')]", retries);
             if (!closeModal) break; // There appears to be no other modals blocking in the way
             log(ns, "Found a modal that needs to be closed.")
             await click(ns, closeModal); // Click the close button on this modal so we can see others behind it
@@ -459,9 +459,9 @@ async function onCompletion(ns, kickedOutAfterPlaying = true) {
     } catch (err) { log(ns, `WARNING: Failed to route to the terminal: ${getErrorInfo(err)}`, false); }
 
     // Run the completion script before shutting down
-    let completionScript = options['on-completion-script'];
+    const completionScript = options['on-completion-script'];
     if (!completionScript) return;
-    let completionArgs = options['on-completion-script-args'];
+    const completionArgs = options['on-completion-script-args'];
     if (ns.run(completionScript, 1, ...completionArgs))
         log(ns, `INFO: casino.js shutting down and launching ${completionScript}...`, false, 'info');
     else
@@ -473,10 +473,10 @@ async function click(ns, button) {
     if (button === null || button === undefined)
         throw new Error("click was called on a null reference. This means the prior button detection failed, but was assumed to have succeeded.");
     // Sleep before clicking, if so configured
-    let sleepDelay = options['click-sleep-time'];
+    const sleepDelay = options['click-sleep-time'];
     if (sleepDelay > 0) await ns.sleep(sleepDelay);
     // Find the onclick method on the button
-    let fnOnClick = button[Object.keys(button)[1]].onClick; // This is voodoo to me. Apparently it's function on the first property of this button?
+    const fnOnClick = button[Object.keys(button)[1]].onClick; // This is voodoo to me. Apparently it's function on the first property of this button?
     if (!fnOnClick)
         throw new Error(`Odd, we found the button we were looking for (${button.text()}), but couldn't find its onclick method!`)
     if (verbose) log(ns, `Clicking the button.`);
@@ -488,7 +488,7 @@ async function click(ns, button) {
 async function setText(ns, input, text) {
     if (input === null || input === undefined)
         throw new Error("setText was called on a null reference. This means the prior input detection failed, but was assumed to have succeeded.");
-    let sleepDelay = options['click-sleep-time'];
+    const sleepDelay = options['click-sleep-time'];
     if (sleepDelay > 0) await ns.sleep(sleepDelay);
     if (verbose) log(ns, `Setting text: ${text} on input.`);
     await input[Object.keys(input)[1]].onChange({ isTrusted: true, target: { value: text } });
@@ -531,7 +531,7 @@ async function internalfindWithRetry(ns, xpath, expectFailure, maxRetries, custo
     try {
         // NOTE: We cannot actually log the xpath we're searching for because depending on the xpath, it might match our log!
         // So here's a trick to convert the characters into "look-alikes"
-        let logSafeXPath = xpath.substring(2, 20) + "..."; // TODO: Some trick to convert the characters into "look-alikes" (ạḅc̣ḍ...)
+        const logSafeXPath = xpath.substring(2, 20) + "..."; // TODO: Some trick to convert the characters into "look-alikes" (ạḅc̣ḍ...)
         if (verbose)
             log(ns, `INFO: ${(expectFailure ? "Checking if element is on screen" : "Searching for expected element")}: \"${logSafeXPath}\"`, false);
         // If enabled give the game some time to render an item before we try to find it on screen
@@ -587,6 +587,6 @@ async function shouldHitAdvanced(ns, playerCountElem) {
 async function getDealerCount(ns) {
     const dealerCount = await findRequiredElement(ns, "//p[contains(text(), 'Dealer')]/..");
     const text = dealerCount.innerText.substring(8, 9);
-    let cardValue = parseInt(text);
+    const cardValue = parseInt(text);
     return isNaN(cardValue) ? (text == 'A' ? 11 : 10) : cardValue;
 }
