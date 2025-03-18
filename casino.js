@@ -82,7 +82,7 @@ export async function main(ns) {
         const baseMessage = "It looks like the user (or another script) navigated away from the casino page" +
             " while casino.js was trying to automate the casino.";
         if (throwError) // If we weren't instructed to stop whatever took focus, raise an error
-            throw new Error(baseMessage + `\nPlease ensure no other scripts are running and try again ` +
+            throw new Error(`${baseMessage}\nPlease ensure no other scripts are running and try again ` +
                 `(or ignore this error if you left the casino on purpose.)`);
         // Otherwise, log a warning, and return false (no longer at the casino)
         log(ns, `WARNING: ${baseMessage}`, false, 'warning');
@@ -172,9 +172,9 @@ export async function main(ns) {
                 try { success = await getNsDataThroughFile(ns, 'ns.singularity.goToLocation(ns.args[0])', null, ["Iker Molina Casino"]); }
                 catch (singErr) { err2 = singErr; }
                 if (!success)
-                    throw new Error("Failed to travel to the casino both using UI navigation and using SF4 as a fall-back." +
-                        `\nUI navigation error was: ${getErrorInfo(err)}\n` + (err2 ? `Singularity error was: ${getErrorInfo(err2)}` :
-                            '`ns.singularity.goToLocation("Iker Molina Casino")` returned false, but no error...'));
+                    throw new Error(`Failed to travel to the casino both using UI navigation and using SF4 as a fall-back.` +
+                        `\nUI navigation error was: ${getErrorInfo(err)}\n${err2 ? `Singularity error was: ${getErrorInfo(err2)}` :
+                            '`ns.singularity.goToLocation("Iker Molina Casino")` returned false, but no error...'}`);
             }
 
             // Step 2.4: Try to start the blackjack game
