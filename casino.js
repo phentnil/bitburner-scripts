@@ -114,7 +114,7 @@ export async function main(ns) {
 
     // Step 1: Find the button used to save the game. (Lots of retries because it can take a while after reloading the page)
     const btnSaveGame = await findRequiredElement(ns, "//button[@aria-label = 'save game']", 100,
-        `Sorry, couldn't find the Overview Save (💾) button. Is your \"Overview\" panel collapsed or modded?`, true);
+        `Sorry, couldn't find the Overview Save (💾) button. Is your "Overview" panel collapsed or modded?`, true);
     async function saveGame() {
         if (saveSleepTime) await ns.sleep(saveSleepTime);
         await click(ns, btnSaveGame);
@@ -165,7 +165,7 @@ export async function main(ns) {
             try { // Try to do this without SF4, because it's faster and doesn't require a temp script to be cleaned up below
                 // Click our way to the city casino
                 await click(ns, await findRequiredElement(ns, "//div[(@role = 'button') and (contains(., 'City'))]", 15,
-                    `Couldn't find the "🏙 City" menu button. Is your \"World\" nav menu collapsed?`));
+                    `Couldn't find the "🏙 City" menu button. Is your "World" nav menu collapsed?`));
                 await click(ns, await findRequiredElement(ns, "//span[@aria-label = 'Iker Molina Casino']"));
             } catch (err) { // Try to use SF4 as a fallback (if available) - it's more reliable.
                 let success = false, err2;
@@ -353,10 +353,9 @@ export async function main(ns) {
                         return await reload(ns); // We want to reload the game (save scum) to undo our loss :)
                     continue;
                 default:
-                    throw new Error(`winLoseTie was set to \"${(winLoseTie === undefined ? 'undefined' :
-                        winLoseTie === null ? 'null' : winLoseTie)}\", which shouldn't be possible`);
+                    throw new Error(`winLoseTie was set to "${(winLoseTie === undefined ? 'undefined' :
+                        winLoseTie === null ? 'null' : winLoseTie)}", which shouldn't be possible`);
             }
-            throw new Error('This code should be unreachable - did someone break the logic above?');
         }
     }
     catch (err) {
@@ -520,7 +519,7 @@ async function internalfindWithRetry(ns, xpath, expectFailure, maxRetries, custo
         // So here's a trick to convert the characters into "look-alikes"
         const logSafeXPath = xpath.substring(2, 20) + "...";
         if (verbose)
-            log(ns, `INFO: ${(expectFailure ? "Checking if element is on screen" : "Searching for expected element")}: \"${logSafeXPath}\"`, false);
+            log(ns, `INFO: ${(expectFailure ? "Checking if element is on screen" : "Searching for expected element")}: "${logSafeXPath}`, false);
         // If enabled give the game some time to render an item before we try to find it on screen
         if (options['find-sleep-time'])
             await ns.sleep(options['find-sleep-time']);
@@ -529,7 +528,7 @@ async function internalfindWithRetry(ns, xpath, expectFailure, maxRetries, custo
             // Sleep between attempts
             if (attempts > 1) {
                 if (verbose || !expectFailure)
-                    log(ns, (expectFailure ? 'INFO' : 'WARN') + `: Attempt ${attempts - 1} of ${maxRetries} to find \"${logSafeXPath}\" failed. Retrying...`, false);
+                    log(ns, (expectFailure ? 'INFO' : 'WARN') + `: Attempt ${attempts - 1} of ${maxRetries} to find "${logSafeXPath}" failed. Retrying...`, false);
                 await ns.sleep(retryDelayMs);
                 retryDelayMs *= 2; // back-off rate (increases next sleep time before retrying)
                 retryDelayMs = Math.min(retryDelayMs, 200); // Cap the retry rate at 200 ms (game tick rate)
@@ -542,7 +541,7 @@ async function internalfindWithRetry(ns, xpath, expectFailure, maxRetries, custo
             if (verbose)
                 log(ns, `INFO: Element doesn't appear to be present, moving on...`, false);
         } else {
-            const errMessage = customErrorMessage ?? `Could not find the element with xpath: \"${logSafeXPath}\"\n` +
+            const errMessage = customErrorMessage ?? `Could not find the element with xpath: "${logSafeXPath}"\n` +
                 `Something may have stolen focus or otherwise routed the UI away from the Casino.`;
             log(ns, 'ERROR: ' + errMessage, true, 'error')
             throw new Error(errMessage, true, 'error');
