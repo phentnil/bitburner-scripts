@@ -6,8 +6,8 @@ import {
 // Note to self: This script doesn't use ram-dodging in the inner loop, because we want to
 // delete all temp files and avoid creating more so that the game saves / reloads faster.
 
-const supportMsg = "Consider posting a full-game screenshot and your save file in the Discord channel or in a new github issue if you want help debugging this issue.";
-const doc = eval("document");
+const supportMsg = 'Consider posting a full-game screenshot and your save file in the Discord channel or in a new github issue if you want help debugging this issue.';
+const doc = eval('document');
 let options;
 const argsSchema = [
     ['save-sleep-time', 10], // Time to sleep in milliseconds before and after saving. If you are having trouble with your automatic saves not "taking effect" try increasing this.
@@ -23,7 +23,7 @@ const argsSchema = [
 export function autocomplete(data, args) {
     data.flags(argsSchema);
     const lastFlag = args.length > 1 ? args[args.length - 2] : null;
-    if (["--on-completion-script"].includes(lastFlag))
+    if (['--on-completion-script'].includes(lastFlag))
         return data.scripts;
     return [];
 }
@@ -38,7 +38,7 @@ export async function main(ns) {
     if (verbose)
         tail(ns)
     else
-        ns.disableLog("ALL");
+        ns.disableLog('ALL');
 
     const abort = false;
 
@@ -50,9 +50,9 @@ export async function main(ns) {
      * @returns {Promise<boolean>} false if focus was not stolen, true if it was and `throwErrorIfNot` is false. */
     async function checkForStolenFocus(throwError = true, retries = 0, silent = false) {
         // See if we are on the "focus" (work/study/training) screen
-        const btnUnfocus = await tryfindElement(ns, "//button[text()='Do something else simultaneously']");
+        const btnUnfocus = await tryfindElement(ns, `//button[text()='Do something else simultaneously']`);
         if (!btnUnfocus) return false; // All good, we aren't focus-working on anything
-        const baseMessage = "It looks like something stole focus while casino.js was trying to automate the casino.";
+        const baseMessage = 'It looks like something stole focus while casino.js was trying to automate the casino.';
         if (throwError) // If we weren't instructed to stop whatever took focus, raise an error
             throw new Error(baseMessage + `\nPlease ensure no other scripts are running and try again.`);
         // Otherwise, log a warning, and return true (focus was stolen)
@@ -71,7 +71,7 @@ export async function main(ns) {
      * @returns {Promise<boolean>} true if we are still at the casino, false we are not and `throwErrorIfNot` is false. */
     async function checkStillAtCasino(throwError = true, silent = false) {
         // Check whether we're still on the casino page
-        const stillAtCasino = await tryfindElement(ns, "//h4[text()='Iker Molina Casino']", silent ? 3 : 10);
+        const stillAtCasino = await tryfindElement(ns, `//h4[text()='Iker Molina Casino']`, silent ? 3 : 10);
         if (stillAtCasino) return true; // All seems good, nothing is stealing focus
         // If we're not still at the casino, see if we are on the "focus" (work/study/training) screen
         const focusWasStolen = await checkForStolenFocus(throwError, silent ? 3 : 1);
@@ -79,8 +79,8 @@ export async function main(ns) {
         if (focusWasStolen || silent)
             return false; // Do not log a warning
         // Otherwise, something else took us away from the casino page when we expected to be there
-        const baseMessage = "It looks like the user (or another script) navigated away from the casino page" +
-            " while casino.js was trying to automate the casino.";
+        const baseMessage = 'It looks like the user (or another script) navigated away from the casino page' +
+            ' while casino.js was trying to automate the casino.';
         if (throwError) // If we weren't instructed to stop whatever took focus, raise an error
             throw new Error(`${baseMessage}\nPlease ensure no other scripts are running and try again ` +
                 `(or ignore this error if you left the casino on purpose.)`);
@@ -96,12 +96,12 @@ export async function main(ns) {
     async function checkForKickedOut(retries = 10) {
         let closeModal;
         do {
-            const kickedOut = await tryfindElement(ns, "//span[contains(text(), 'Alright cheater get out of here')]", retries);
+            const kickedOut = await tryfindElement(ns, `//span[contains(text(), 'Alright cheater get out of here')]`, retries);
             if (kickedOut !== null) return true; // Success: We've been kicked out
             // If there are any other modals, they may need to be closed before we can see the kicked out alert.
-            const closeModal = await tryfindElement(ns, "//button[contains(@class,'closeButton')]", retries);
+            const closeModal = await tryfindElement(ns, `//button[contains(@class,'closeButton')]`, retries);
             if (!closeModal) break; // There appears to be no other modals blocking in the way
-            log(ns, "Found a modal that needs to be closed.")
+            log(ns, 'Found a modal that needs to be closed.')
             await click(ns, closeModal); // Click the close button on this modal so we can see others behind it
         } while (closeModal !== null);
         return false;
@@ -113,7 +113,7 @@ export async function main(ns) {
     await checkForKickedOut(3);
 
     // Step 1: Find the button used to save the game. (Lots of retries because it can take a while after reloading the page)
-    const btnSaveGame = await findRequiredElement(ns, "//button[@aria-label = 'save game']", 100,
+    const btnSaveGame = await findRequiredElement(ns, `//button[@aria-label = 'save game']`, 100,
         `Sorry, couldn't find the Overview Save (💾) button. Is your "Overview" panel collapsed or modded?`, true);
     async function saveGame() {
         if (saveSleepTime) await ns.sleep(saveSleepTime);
@@ -138,24 +138,24 @@ export async function main(ns) {
                 3, true); // silent: true - means don't raise a warning if we're focus-working. Just background it.
 
             // Step 2.2: Go to Aevum if we aren't already there. (Must be done manually if you don't have SF4)
-            if (ns.getPlayer().city != "Aevum") {
+            if (ns.getPlayer().city != 'Aevum') {
                 if (ns.getPlayer().money < 200000)
-                    throw new Error("Sorry, you need at least 200k to travel to the casino.");
+                    throw new Error('Sorry, you need at least 200k to travel to the casino.');
                 let travelled = false;
                 try {
-                    travelled = await getNsDataThroughFile(ns, 'ns.singularity.travelToCity(ns.args[0])', null, ["Aevum"]);
+                    travelled = await getNsDataThroughFile(ns, 'ns.singularity.travelToCity(ns.args[0])', null, ['Aevum']);
                 } catch { }
                 if (!travelled) // Note: While it would be nice to confirm whether we have SF4 for the message, it's not worth the cost.
-                    log(ns, "INFO: Canot use singularity travel to Aevum via singularity. We will try to go there manually for now.", true);
+                    log(ns, 'INFO: Canot use singularity travel to Aevum via singularity. We will try to go there manually for now.', true);
                 // If automatic travel failed or couldn't be attempted, try clicking our way there!
                 if (!travelled) {
-                    await click(ns, await findRequiredElement(ns, "//div[@role='button' and ./div/p/text()='Travel']"));
-                    await click(ns, await findRequiredElement(ns, "//span[contains(@class,'travel') and ./text()='A']"));
+                    await click(ns, await findRequiredElement(ns, `//div[@role='button' and ./div/p/text()='Travel']`));
+                    await click(ns, await findRequiredElement(ns, `//span[contains(@class,'travel') and ./text()='A']`));
                     // If this didn't put us in Aevum, there's likely a travel confirmation dialog we need to click through
-                    if (!ns.getPlayer().city != "Aevum")
-                        await click(ns, await findRequiredElement(ns, "//button[p/text()='Travel']"));
+                    if (!ns.getPlayer().city != 'Aevum')
+                        await click(ns, await findRequiredElement(ns, `//button[p/text()='Travel']`));
                 }
-                if (ns.getPlayer().city == "Aevum")
+                if (ns.getPlayer().city == 'Aevum')
                     log(ns, `SUCCESS: We're now in Aevum!`)
                 else
                     throw new Error(`We thought we travelled to Aevum, but we're apparently still in ${ns.getPlayer().city}...`);
@@ -164,12 +164,12 @@ export async function main(ns) {
             // Step 2.3: Navigate to the City Casino
             try { // Try to do this without SF4, because it's faster and doesn't require a temp script to be cleaned up below
                 // Click our way to the city casino
-                await click(ns, await findRequiredElement(ns, "//div[(@role = 'button') and (contains(., 'City'))]", 15,
+                await click(ns, await findRequiredElement(ns, `//div[(@role = 'button') and (contains(., 'City'))]`, 15,
                     `Couldn't find the "🏙 City" menu button. Is your "World" nav menu collapsed?`));
-                await click(ns, await findRequiredElement(ns, "//span[@aria-label = 'Iker Molina Casino']"));
+                await click(ns, await findRequiredElement(ns, `//span[@aria-label = 'Iker Molina Casino']`));
             } catch (err) { // Try to use SF4 as a fallback (if available) - it's more reliable.
                 let success = false, err2;
-                try { success = await getNsDataThroughFile(ns, 'ns.singularity.goToLocation(ns.args[0])', null, ["Iker Molina Casino"]); }
+                try { success = await getNsDataThroughFile(ns, 'ns.singularity.goToLocation(ns.args[0])', null, ['Iker Molina Casino']); }
                 catch (singErr) { err2 = singErr; }
                 if (!success)
                     throw new Error(`Failed to travel to the casino both using UI navigation and using SF4 as a fall-back.` +
@@ -178,14 +178,14 @@ export async function main(ns) {
             }
 
             // Step 2.4: Try to start the blackjack game
-            await click(ns, await findRequiredElement(ns, "//button[contains(text(), 'blackjack')]"));
+            await click(ns, await findRequiredElement(ns, `//button[contains(text(), 'blackjack')]`));
 
             // Step 2.5: Get some buttons we will need to play blackjack
-            inputWager = await findRequiredElement(ns, "//input[@type='number']");
-            btnStartGame = await findRequiredElement(ns, "//button[text() = 'Start']");
+            inputWager = await findRequiredElement(ns, `//input[@type='number']`);
+            btnStartGame = await findRequiredElement(ns, `//button[text() = 'Start']`);
 
             // Step 2.6: Clean up temp files and kill other running scripts to speed up the reload cycle
-            if (ns.ls("home", "Temp/").length > 0) { // If there are some temp files, it suggests we haven't killed all scripts and cleaned up yet
+            if (ns.ls('home', 'Temp/').length > 0) { // If there are some temp files, it suggests we haven't killed all scripts and cleaned up yet
                 // Step 2.6.1: Test that we aren't already kicked out of the casino before doing drastic things like killing scripts
                 const moneySources = await getNsDataThroughFile(ns, 'ns.getMoneySources()'); // NEW (2022): We can use money sources to see what our casino earnings have been
                 const priorCasinoEarnings = moneySources.sinceInstall.casino;
@@ -194,14 +194,14 @@ export async function main(ns) {
                         `but we can double-check anyway by attempting to play a game, since you bothered running this script, and I've bothered scripting the check :)`, true)
                 await setText(ns, inputWager, `1`); // Bet just a dollar and quick the game right away, no big deal
                 await click(ns, btnStartGame);
-                if (await tryfindElement(ns, "//p[contains(text(), 'Count:')]", 10)) { // If this works, we're still allowed in
-                    const btnStay = await tryfindElement(ns, "//button[text() = 'Stay']");
+                if (await tryfindElement(ns, `//p[contains(text(), 'Count:')]`, 10)) { // If this works, we're still allowed in
+                    const btnStay = await tryfindElement(ns, `//button[text() = 'Stay']`);
                     if (btnStay) await click(ns, btnStay); // Trigger the game to end (optional - game might already be over if dealer got blackjack)
                 } else { // Otherwise, we've probably been kicked out of the casino, but...
                     // because we haven't killed scripts yet, it's possible another script stole focus again. Detect and handle that case.
                     if (!(await checkStillAtCasino(false))) continue; // Loop back after taking back focus and try again
                     if (await checkForKickedOut()) return await onCompletion(ns, false); // We appear to have previously been kicked out
-                    throw new Error("Couldn't start a game of blackjack at the casino, but we don't appear to be kicked out...");
+                    throw new Error(`Couldn't start a game of blackjack at the casino, but we don't appear to be kicked out...`);
                 }
                 // Step 2.6.2: Kill all other scripts if enabled (note, we assume that if the temp folder is empty, they're already killed and this is a reload)
                 if (options['kill-all-scripts'])
@@ -224,7 +224,7 @@ export async function main(ns) {
     }
 
     if (ns.getPlayer().money < 1)
-        return log(ns, "WARNING: Whoops, we have no money to bet! Kill whatever's spending it and try again later.", true, 'warning');
+        return log(ns, `WARNING: Whoops, we have no money to bet! Kill whatever's spending it and try again later.`, true, 'warning');
 
     // Step 3: Save the game state now that this script is running, so that future reloads start this script back up immediately.
     await saveGame();
@@ -253,11 +253,11 @@ export async function main(ns) {
             let btnHit, btnStay;
             let retries = 0;
             while (retries++ < 10) { // Quickly distinguish between outcomes #1 and #2. Start retrying only if we can't find any expected buttons
-                if (await tryfindElement(ns, "//button[text() = 'Start']", retries))
+                if (await tryfindElement(ns, `//button[text() = 'Start']`, retries))
                     break; // If the start button is present, Outcome #2 or #5 has occurred. (typically #2)
                 // Otherwise, expect to find the hit and stay buttons
-                btnHit = await tryfindElement(ns, "//button[text() = 'Hit']", retries);
-                btnStay = await tryfindElement(ns, "//button[text() = 'Stay']", retries);
+                btnHit = await tryfindElement(ns, `//button[text() = 'Hit']`, retries);
+                btnStay = await tryfindElement(ns, `//button[text() = 'Stay']`, retries);
                 // If we detected both buttons, the game is on.
                 if ((btnHit && btnStay))
                     break;
@@ -295,7 +295,7 @@ export async function main(ns) {
                 let midGameRetries = 0;
                 try {
                     // Step 4.5.1: Get the current card count
-                    const txtCount = await findRequiredElement(ns, "//p[contains(text(), 'Count:')]");
+                    const txtCount = await findRequiredElement(ns, `//p[contains(text(), 'Count:')]`);
                     const allCounts = txtCount.querySelectorAll('span'); // The text might contain multiple counts (if there is an Ace)
 
                     // Step 4.5.2: Decide to hit or stay
@@ -330,9 +330,9 @@ export async function main(ns) {
 
             // Step 4.6: Take action depending on whether we won, lost, or tied
             switch (winLoseTie) {
-                case "tie": // Nothing gained or lost, we can immediately start a new game.
+                case 'tie': // Nothing gained or lost, we can immediately start a new game.
                     continue;
-                case "win": // We want to "lock in" our wins by saving the game after each one
+                case 'win': // We want to "lock in" our wins by saving the game after each one
                     netWinnings += bet;
                     // Keep tabs of our best winnings, and save the game each time we top it
                     if (netWinnings > peakWinnings) {
@@ -346,7 +346,7 @@ export async function main(ns) {
                     if (await checkForKickedOut(1)) // Only 1 retry should be very fast
                         return await onCompletion(ns);
                     continue;
-                case "lose":
+                case 'lose':
                     netWinnings -= bet;
                     // To avoid reloading too often, only reload if we're losing really badly (almost broke, or down by 10 games)
                     if (ns.getPlayer().money < 1E8 || netWinnings <= peakWinnings - 10 * 1E8)
@@ -373,15 +373,15 @@ async function getWinLoseOrTie(ns) {
     // 1+2+3+4+5=15 total retries, but all with small ms wait times (<20ms), so should still only take a second
     let retries = 0;
     while (retries++ < 5) {
-        if (await tryfindElement(ns, "//button[text() = 'Hit']", retries))
+        if (await tryfindElement(ns, `//button[text() = 'Hit']`, retries))
             return null; // Game is not over yet, we can still hit
-        if (await tryfindElement(ns, "//p[contains(text(), 'lost')]", retries))
-            return "lose";
+        if (await tryfindElement(ns, `//p[contains(text(), 'lost')]`, retries))
+            return 'lose';
         // Annoyingly, when we win with blackjack, "Won" is Title-Case, but normal wins is just "won".
-        if (await tryfindElement(ns, "//p/text()[contains(.,'won') or contains(.,'Won')]", retries))
-            return "win";
-        if (await tryfindElement(ns, "//p[contains(text(), 'Tie')]", retries))
-            return "tie";
+        if (await tryfindElement(ns, `//p/text()[contains(.,'won') or contains(.,'Won')]`, retries))
+            return 'win';
+        if (await tryfindElement(ns, `//p[contains(text(), 'Tie')]`, retries))
+            return 'tie';
     }
     return null;
 }
@@ -393,7 +393,7 @@ async function reload(ns) {
     let attempts = 0;
     let errMessage = '';
     while (attempts++ <= 5) {
-        eval("window").onbeforeunload = null; // Disable the unsaved changes warning before reloading
+        eval('window').onbeforeunload = null; // Disable the unsaved changes warning before reloading
         await ns.sleep(options['save-sleep-time']); // Yield execution for an instant incase the game needs to finish a save or something
         location.reload(); // Force refresh the page without saving
         await ns.sleep(10000); // Keep the script alive to be safe. Presumably the page reloads before this completes.
@@ -414,7 +414,7 @@ async function killAllOtherScripts(ns, removeRemoteFiles) {
 
     // Kill processes on all other servers
     const allServers = await getNsDataThroughFile(ns, 'scanAllServers(ns)');
-    const serversExceptHome = allServers.filter(s => s != "home");
+    const serversExceptHome = allServers.filter(s => s != 'home');
     pid = await runCommand(ns, 'ns.args.forEach(host => ns.killall(host))',
         '/Temp/kill-all-scripts-on-servers.js', serversExceptHome);
     await waitForProcessToComplete(ns, pid);
@@ -434,13 +434,13 @@ async function killAllOtherScripts(ns, removeRemoteFiles) {
  *  Run when we can no longer gamble at the casino (presumably because we've been kicked out) **/
 async function onCompletion(ns, kickedOutAfterPlaying = true) {
     if (kickedOutAfterPlaying)
-        log(ns, "SUCCESS: We've been kicked out of the casino.", true);
+        log(ns, `SUCCESS: We've been kicked out of the casino.`, true);
     else
-        log(ns, "INFO: We appear to have been previously kicked out of the casino. Continuing without playing...", true);
+        log(ns, 'INFO: We appear to have been previously kicked out of the casino. Continuing without playing...', true);
 
     // For convenience, route to the terminal (but no stress if it doesn't work)
     try {
-        const terminalNav = await tryfindElement(ns, "//div[(@role = 'button') and (contains(., 'Terminal'))]");
+        const terminalNav = await tryfindElement(ns, `//div[(@role = 'button') and (contains(., 'Terminal'))]`);
         if (terminalNav) await click(ns, terminalNav);
     } catch (err) { log(ns, `WARNING: Failed to route to the terminal: ${getErrorInfo(err)}`, false); }
 
@@ -457,7 +457,7 @@ async function onCompletion(ns, kickedOutAfterPlaying = true) {
 // Some DOM helpers (partial credit to @ShamesBond)
 async function click(ns, button) {
     if (button === null || button === undefined)
-        throw new Error("click was called on a null reference. This means the prior button detection failed, but was assumed to have succeeded.");
+        throw new Error('click was called on a null reference. This means the prior button detection failed, but was assumed to have succeeded.');
     // Sleep before clicking, if so configured
     const sleepDelay = options['click-sleep-time'];
     if (sleepDelay > 0) await ns.sleep(sleepDelay);
@@ -473,7 +473,7 @@ async function click(ns, button) {
 }
 async function setText(ns, input, text) {
     if (input === null || input === undefined)
-        throw new Error("setText was called on a null reference. This means the prior input detection failed, but was assumed to have succeeded.");
+        throw new Error('setText was called on a null reference. This means the prior input detection failed, but was assumed to have succeeded.');
     const sleepDelay = options['click-sleep-time'];
     if (sleepDelay > 0) await ns.sleep(sleepDelay);
     if (verbose) log(ns, `Setting text: ${text} on input.`);
@@ -517,9 +517,9 @@ async function internalfindWithRetry(ns, xpath, expectFailure, maxRetries, custo
     try {
         // NOTE: We cannot actually log the xpath we're searching for because depending on the xpath, it might match our log!
         // So here's a trick to convert the characters into "look-alikes"
-        const logSafeXPath = xpath.substring(2, 20) + "...";
+        const logSafeXPath = xpath.substring(2, 20) + '...';
         if (verbose)
-            log(ns, `INFO: ${(expectFailure ? "Checking if element is on screen" : "Searching for expected element")}: "${logSafeXPath}`, false);
+            log(ns, `INFO: ${(expectFailure ? 'Checking if element is on screen' : 'Searching for expected element')}: "${logSafeXPath}`, false);
         // If enabled give the game some time to render an item before we try to find it on screen
         if (options['find-sleep-time'])
             await ns.sleep(options['find-sleep-time']);
@@ -560,7 +560,7 @@ async function shouldHitAdvanced(ns, playerCountElem) {
     if (verbose)
         log(ns, `Player Count Text: ${txtPlayerCount}, Player: ${player}, Dealer: ${dealer}`);
     // Strategy to minimize house-edge. See https://wizardofodds.com/blackjack/images/bj_4d_s17.gif
-    if (txtPlayerCount.includes("or")) { // Player has an Ace
+    if (txtPlayerCount.includes('or')) { // Player has an Ace
         if (player >= 9) return false; // Stay on Soft 19 or higher
         if (player == 8 && dealer <= 8) return false; // Soft 18 - Stay if dealer has 8 or less
         return true; // Otherwise, hit on Soft 17 or less
@@ -571,7 +571,7 @@ async function shouldHitAdvanced(ns, playerCountElem) {
     return true;// Otherwise Hit
 }
 async function getDealerCount(ns) {
-    const dealerCount = await findRequiredElement(ns, "//p[contains(text(), 'Dealer')]/..");
+    const dealerCount = await findRequiredElement(ns, `//p[contains(text(), 'Dealer')]/..`);
     const text = dealerCount.innerText.substring(8, 9);
     const cardValue = parseInt(text);
     return isNaN(cardValue) ? (text == 'A' ? 11 : 10) : cardValue;
